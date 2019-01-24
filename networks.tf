@@ -55,11 +55,11 @@ resource "aws_vpc" "vpc-main" {
 
 /* NETWORKS */
 resource "aws_subnet" "sn-pub" {
-  count = "${var.zone_number -1}"
+  count = "${var.zone_number}"
 
   vpc_id            = "${aws_vpc.vpc-main.id}"
   cidr_block        = "10.0.${count.index}.0/24"
-  availability_zone = "${data.aws_availability_zones.az.*.names[count.index]}"
+  availability_zone = "${var.az[count.index]}"
 
   tags = "${
     map(
@@ -70,11 +70,11 @@ resource "aws_subnet" "sn-pub" {
 }
 
 resource "aws_subnet" "sn-priv" {
-  count = "${var.zone_number - 1}"
+  count = "${var.zone_number}"
 
   vpc_id            = "${aws_vpc.vpc-main.id}"
   cidr_block        = "10.0.${count.index + 5}.0/24"
-  availability_zone = "${data.aws_availability_zones.az.names[count.index]}"
+  availability_zone = "${var.az[count.index]}"
 
   tags = "${
     map(
@@ -102,13 +102,13 @@ resource "aws_vpn_gateway" "vpngw-main" {
 }
 
 resource "aws_eip" "eip-ngw" {
-  count = "${var.zone_number - 1}"
+  count = "${var.zone_number}"
   vpc = true
   depends_on = ["aws_internet_gateway.igw-main"]
 }
 
 resource "aws_nat_gateway" "ngw-priv" {
-  count = "${var.zone_number - 1}"
+  count = "${var.zone_number}"
   allocation_id = "${aws_eip.eip-ngw.*.id[count.index]}"
   subnet_id     = "${aws_subnet.sn-priv.*.id[count.index]}"
 
@@ -119,7 +119,7 @@ resource "aws_nat_gateway" "ngw-priv" {
 
 /* ROUTE TABLEs */
 resource "aws_route_table" "rt-pub" {
-  count = "${var.zone_number - 1}"
+  count = "${var.zone_number}"
   vpc_id = "${aws_vpc.vpc-main.id}"
 
   route {
@@ -129,7 +129,7 @@ resource "aws_route_table" "rt-pub" {
 }
 
 resource "aws_route_table" "rt-priv" {
-  count = "${var.zone_number -1}"
+  count = "${var.zone_number}"
   vpc_id = "${aws_vpc.vpc-main.id}"
 
   route {
@@ -140,7 +140,7 @@ resource "aws_route_table" "rt-priv" {
 
 /* ROUTE TABLE ASSOCIATION */
 resource "aws_route_table_association" "rta-pub" {
-  count = "${var.zone_number - 1}"
+  count = "${var.zone_number}"
   subnet_id      = "${aws_subnet.sn-pub.*.id[count.index]}"
   route_table_id = "${aws_route_table.rt-pub.*.id[count.index]}"
 }

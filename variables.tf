@@ -21,8 +21,8 @@ variable "ami" {
 
 /* ZONE NAMES */
 variable "zone_number" { default = 3 }
-data "aws_availability_zones" "az" {
-  #names = ["eu-central-1a", "eu-central-1b", "eu-central-1c"]
+variable "az" {
+  default = ["eu-central-1a", "eu-central-1b", "eu-central-1c"]
 }
 
 variable "region" { default = "eu-central-1" }
