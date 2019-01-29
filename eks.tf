@@ -47,9 +47,9 @@ resource "aws_security_group" "eks-cluster" {
   }
 }
 
-/* EKS - master cluster */
-resource "aws_eks_cluster" "eks-test" {
-  name     = "eks-test"
+/* EKS CLUSTER - master */
+resource "aws_eks_cluster" "eks-main" {
+  name     = "${var.clname}"
   role_arn = "${aws_iam_role.eks-cluster.arn}"
 
   vpc_config {
@@ -61,6 +61,12 @@ resource "aws_eks_cluster" "eks-test" {
     "aws_iam_role_policy_attachment.eks-cluster-AmazonEKSClusterPolicy",
     "aws_iam_role_policy_attachment.eks-cluster-AmazonEKSServicePolicy",
   ]
+}
+
+resource "null_resource" "update_kubeconfig" {
+  provisioner "local-exec" {
+    command = "aws eks update-config --name ${aws_eks_cluster.eks-main.name}"
+  }
 }
 
 /* worker roles */
@@ -167,7 +173,7 @@ locals {
   eks-node-userdata = <<USERDATA
 #!/bin/bash
 set -o xtrace
-/etc/eks/bootstrap.sh --apiserver-endpoint '${aws_eks_cluster.eks-test.endpoint}' --b64-cluster-ca '${aws_eks_cluster.eks-test.certificate_authority.0.data}' '${var.clname}'
+/etc/eks/bootstrap.sh --apiserver-endpoint '${aws_eks_cluster.eks-main.endpoint}' --b64-cluster-ca '${aws_eks_cluster.eks-main.certificate_authority.0.data}' '${var.clname}'
 USERDATA
 }
 
@@ -186,10 +192,10 @@ resource "aws_launch_configuration" "eks-base" {
 }
 
 resource "aws_autoscaling_group" "eks-cluster" {
-    desired_capacity     = 2
+    desired_capacity     = "${var.hostcount}"
     launch_configuration = "${aws_launch_configuration.eks-base.id}"
-    max_size             = 2
-    min_size             = 1
+    max_size             = "${var.hostmax}"
+    min_size             = "${var.hostmin}"
     name                 = "${var.clname}-node"
     vpc_zone_identifier  = ["${aws_subnet.sn-pub.*.id}"]
 
@@ -217,7 +223,7 @@ metadata:
   namespace: kube-system
 data:
   mapRoles: |
-    - rolearn: ${aws_iam_role.eks-worker-node-role.arn}
+    - rolearn: ${aws_iam_role.eks-node.arn}
       username: system:node:{{EC2PrivateDNSName}}
       groups:
         - system:bootstrappers
