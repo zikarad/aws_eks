@@ -1,6 +1,6 @@
 /* --- VPCs */
 resource "aws_vpc" "vpc-main" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = "${var.vpc_cidr}"
   enable_dns_hostnames = true
   enable_dns_support   = true
 
@@ -58,7 +58,7 @@ resource "aws_subnet" "sn-pub" {
   count = "${var.zone_number}"
 
   vpc_id            = "${aws_vpc.vpc-main.id}"
-  cidr_block        = "10.0.${count.index}.0/24"
+  cidr_block        = "${cidrsubnet(var.vpc_cidr, 8, count.index)}"
   availability_zone = "${var.az[count.index]}"
 
   tags = "${
@@ -73,7 +73,7 @@ resource "aws_subnet" "sn-priv" {
   count = "${var.zone_number}"
 
   vpc_id            = "${aws_vpc.vpc-main.id}"
-  cidr_block        = "10.0.${count.index + 5}.0/24"
+  cidr_block        = "${cidrsubnet(var.vpc_cidr, 8, count.index + 5)}"
   availability_zone = "${var.az[count.index]}"
 
   tags = "${
