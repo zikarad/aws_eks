@@ -13,7 +13,7 @@ variable "clname" {
 /* AWS */
 variable "ami" {
   # EU-CENTRAL-1 => CentOS 7
-  default        = "ami-0a84197c3325910a9"
+  default        = "ami-077c0308fba3bc548"
 }
 
 /* ZONE NAMES */
