@@ -42,7 +42,7 @@ resource "aws_security_group" "eks-cluster" {
 
   tags {
     Name    = "eks-cluster"
-    stage   = "poc"
+    stage   = "${var.stage}"
     creator = "terraform"
   }
 }
@@ -182,6 +182,7 @@ resource "aws_launch_configuration" "eks-base" {
   iam_instance_profile        = "${aws_iam_instance_profile.eks-node.name}"
   image_id                    = "${data.aws_ami.eks-worker.id}"
   instance_type               = "${var.host-size}"
+  key_name                    = "${var.sshkey_name}"
   name_prefix                 = "${var.clname}"
   security_groups             = ["${aws_security_group.eks-node.id}"]
   user_data_base64            = "${base64encode(local.eks-node-userdata)}"
@@ -201,7 +202,7 @@ resource "aws_autoscaling_group" "eks-cluster" {
 
     tag {
       key                 = "Name"
-      value               = "eks-test"
+      value               = "${var.prefix}-${var.stage}"
       propagate_at_launch = true
     }
 
