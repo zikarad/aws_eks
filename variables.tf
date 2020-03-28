@@ -1,4 +1,3 @@
-variable "domain_name" { default = "radekzika.cloud" }
 variable "prefix"      { default = "eks" }
 variable "stage"       { default = "poc"}
 
@@ -7,7 +6,7 @@ variable "vpc_cidr" { default = "10.4.0.0/16" }
 variable "clname" {
   type        = "string"
   description = "Cluster name"
-  default     = "eks-test"
+  default     = "eks1"
 }
 
 /* AWS */
