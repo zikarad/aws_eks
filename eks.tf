@@ -192,6 +192,14 @@ resource "aws_launch_configuration" "eks-base" {
   }
 }
 
+resource "aws_autoscaling_policy" "eksp-simple" {
+	name                   = "simple"
+	adjustment_type        = "ChangeInCapacity"
+	scaling_adjustment     = 1 
+	cooldown               = 300
+	autoscaling_group_name = "${aws_autoscaling_group.eks-cluster.name}"
+}
+
 resource "aws_autoscaling_group" "eks-cluster" {
     desired_capacity     = "${var.hostcount}"
     launch_configuration = "${aws_launch_configuration.eks-base.id}"
